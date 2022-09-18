@@ -64,6 +64,6 @@ def update():
             conn.commit()
             os.remove(fname)
             
-            time.sleep(600)
+            time.sleep(config.timeval)
 
 update()
