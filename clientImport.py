@@ -11,8 +11,11 @@ def update():
             data = pd.read_csv(fname)
             df = pd.DataFrame(data)
 
-            # Convert NULL Birthdates to '01/01/9999'
-            df['ClientBirthdate'] = pd.to_datetime(df['ClientBirthdate'], errors='coerce').where(df['ClientBirthdate'].notnull(), '01/01/9999')
+            # Date related functions
+            date_cols = df[[col for col in df.columns if "date" in col]]
+            
+            for x in date_cols:
+                df[x].fillna(0,inplace=True)
             
             # Fill all blank fields with an empty length string
             df.fillna('', inplace=True)
@@ -24,8 +27,7 @@ def update():
             # Pull out the Account Name from the file
             # query the database to get the AccountID for the account (if present)
             string = os.path.basename(fname)
-            string = os.path.splitext(string)[0]
-            string = string.replace('_Client','')
+            string = string.split('_')[0]
             query = config.getAccountName + "\'" + string + "\'"
             acctID = cursor.execute(query).fetchval()
             
@@ -44,10 +46,13 @@ def update():
             
             # for each record in the CSV file, execute an INSERT statement into the Client table
             for row in df.itertuples():
+                
+                # Needs to be changed to do this for any date field
                 ctBirthdate = row.ClientBirthdate
                 
-                if ctBirthdate == '01/01/9999':
+                if ctBirthdate == 0:
                     ctBirthdate = None
+                # End of the portion to be changed for any date field
                     
                 cursor.execute(config.insertClient,
                             acctID, 
